@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Busan Word Game</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #f0f8ff; }
+        .container { background: white; width: 450px; margin: 0 auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #word-display { font-size: 2.2em; letter-spacing: 10px; margin: 20px; font-weight: bold; color: #2c3e50; }
+        .input-group { margin-top: 20px; }
+        input { padding: 10px; font-size: 16px; width: 60%; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #3498db; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Busan Word Game</h1>
+    <p id="round-info">Round: 1 / 5</p>
+    <p id="score-board">Total Score: 0</p>
+    
+    <div id="word-display">_ _ _ _ _</div>
+    <p id="chances">Chances: 3</p>
+    
+    <div id="hint-text" style="display:none; color: #8e44ad; font-style: italic; margin-bottom: 10px;"></div>
+    <button onclick="showHint()">Get Hint</button>
+
+    <div class="input-group">
+        <input type="text" id="guess-input" placeholder="Type word..." onkeypress="handleEnter(event)">
+        <button onclick="checkGuess()">Submit</button>
+    </div>
+    <p id="message"></p>
+</div>
+
+<script>
+    // 부산 관련 단어와 힌트
+    const gameData = [
+        { word: "haeundae", hint: "The most famous beach in Busan." },
+        { word: "gwangalli", hint: "A beach known for its beautiful bridge view." },
+        { word: "jagalchi", hint: "The largest seafood market in Korea." },
+        { word: "gamcheon", hint: "A colorful cultural village on a hillside." },
+        { word: "centum", hint: "The area where the world's largest department store is located." }
+    ];
+
+    let round = 0;
+    let score = 0;
+    let chances = 3;
+    let displayArray = [];
+    let selectedWord = "";
+
+    function handleEnter(event) {
+        if (event.key === "Enter") checkGuess();
+    }
+
+    function startRound() {
+        if (round >= gameData.length) {
+            alert("Game Completed! Final Score: " + score);
+            round = 0; score = 0;
+        }
+        selectedWord = gameData[round].word;
+        displayArray = Array(selectedWord.length).fill("_");
+        chances = 3;
+        
+        let revealed = 0;
+        while (revealed < 2) {
+            let idx = Math.floor(Math.random() * selectedWord.length);
+            if (displayArray[idx] === "_") {
+                displayArray[idx] = selectedWord[idx];
+                revealed++;
+            }
+        }
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        document.getElementById("word-display").innerText = displayArray.join(" ");
+        document.getElementById("round-info").innerText = "Round: " + (round + 1) + " / 5";
+        document.getElementById("score-board").innerText = "Total Score: " + score;
+        document.getElementById("chances").innerText = "Chances: " + chances;
+        document.getElementById("hint-text").style.display = "none";
+        document.getElementById("hint-text").innerText = "Hint: " + gameData[round].hint;
+    }
+
+    function showHint() {
+        document.getElementById("hint-text").style.display = "block";
+    }
+
+    function checkGuess() {
+        const input = document.getElementById("guess-input");
+        const guess = input.value.toLowerCase().trim();
+        
+        if (!guess) return;
+
+        if (guess === selectedWord) {
+            score += 1;
+            alert("Correct! It is " + selectedWord);
+            round++;
+            startRound();
+        } else {
+            chances -= 1;
+            // 입력한 글자 중 정답에 포함된 글자 공개
+            for (let i = 0; i < selectedWord.length; i++) {
+                if (guess[i] === selectedWord[i]) displayArray[i] = selectedWord[i];
+            }
+            
+            if (chances <= 0) {
+                score -= 1;
+                alert("Out of chances! The word was: " + selectedWord);
+                round++;
+                startRound();
+            } else {
+                alert("Wrong! " + chances + " chances left.");
+            }
+        }
+        input.value = "";
+        updateDisplay();
+    }
+
+    startRound();
+</script>
+
+</body>
+</html>
